@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+{% extends 'quiz/base.html' %}
+{% block page_title %}{{ user_profile.username }}{% endblock %}
+{% block body_content %}
+<div class="container my-3">
+    <h1>{{ user_profile.username }}</h1>
+    <h3 class="text-secondary">{{ user_profile.first_name }} {{ user_profile.last_name }}</h3>
+    <h3>Created quizes:</h3>
+    <div class="carousel-inner">
+            {% for quiz in quiz_list %}
+                <div class="card">
+                    <div class="card-body">
+                        <h4>{{ forloop.counter }}. {{ quiz.quiz_name }}</h4>
+                        <div class="d-flex">
+                            <a class="btn btn-success" href="{% url 'quiz:play' quiz.id %}">Play</a>
+                            {% if user_profile.id == user.id %}
+                                <button type="button" class="btn btn-danger mx-3" data-bs-toggle="modal" data-bs-target="#myModal">Delete</button>
+
+                                <div class="modal" id="myModal">
+                                  <div class="modal-dialog">
+                                    <div class="modal-content">
+                                      <div class="modal-header">
+                                        <h4 class="modal-title">Are you sure, that you want to delete this quiz?</h4>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                      </div>
+                                      <div class="modal-body">
+                                          <a class="btn btn-danger mx-3" href="{% url 'quiz:delete' quiz.id%}">Yes, delete</a>
+                                          <button type="button" class="btn btn-success" data-bs-dismiss="modal">No, close</button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+    </div>
+
+    <h3>Already played:</h3>
+        <div class="carousel-inner">
+                {% for play in play_list %}
+                    <div class="card">
+                        <div class="card-body">
+            <h4>{{ forloop.counter }}. {{ play.quiz.quiz_name }} - {{ play.points }} points.</h4>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+</div>
+{% endblock %}
