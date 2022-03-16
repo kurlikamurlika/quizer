@@ -1,64 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Creator</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js"></script>
-    {% load static %}
-    <script src="{% static 'quiz/create.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'quiz/style.css' %}" rel="stylesheet">
-</head>
-<body>
- <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
-        <div class="container-fluid">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'quiz:index' %}">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'quiz:create' %}">Create</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'quiz:about' %}">About</a>
-                </li>
-            </ul>
-            <div class="d-flex">
-                {% if user.is_authenticated %}
-                    <li class="nav-item">{
-                        <a class="btn btn-primary mx-3" href="{% url 'quiz:profile' user.id%}">{{ user.get_username }}</a></li>
-                    <li class="nav-item">
-                        <a class="btn btn-primary" href="{% url 'logout'%}?next={{request.path}}">Logout</a>
-                    </li>
-                {% else %}
-                    <li class="nav-item">
-                        <a class="btn btn-primary mx-3" href="{% url 'login'%}?next={{request.path}}">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="btn btn-primary" href="{% url 'quiz:register'%}?next={{request.path}}">Sign up</a>
-                    </li>
-                {% endif %}
-                </div>
-        </div>
-    </nav>
-
+{% extends 'quiz/base.html' %}
+{% block page_title %}Create Quiz{% endblock %}
+{% block body_content %}
 <div class="container my-3">
-<h1>Creator</h1>
+<h1>Creator Test</h1>
     {% if user.is_authenticated %}
         <h2>Hello, {{ user.first_name }}! There you can create your own quiz!</h2>
         <h3>Firstly add needed number of questions and answer, and only then fill everything.</h3>
         <div class="jumbotron">
-            <form action="{% url 'quiz:edit' %}" method="post">
+            <button class="btn btn-success mb-5 btn-lg" onclick="addQuestion()">Add Question</button>
+            <button class="btn btn-danger mx-3 mb-5 btn-lg" onclick="Reset()">Reset</button>
+            <form action="{% url 'quiz:upload' %}" method="post">
                 {% csrf_token %}
                 <div id="quiz_form">
-                    <label for="quiz_name">Enter name of your quiz:</label>
-                    <input type="text" name="quiz_name" id="quiz_name" required><br><br>
-                    <label for="question_number">Enter number of questions</label>
-                    <input type="number" name="question_number" id="question_number" required><br><br>
-                    <label for="answer_number">Enter number of answers to each questions</label>
-                    <input type="number" name="answer_number" id="answer_number" required>
+                    <div id="quiz_info">
+                        <label for="quiz_name">Enter name of your quiz:</label>
+                        <input type="text" name="quiz_name" id="quiz_name" required><br>
+                    </div>
+                    <input type="hidden" name="question_number" value="1" id="question_number">
+                    <div id="question_1_info">
+                        <br>
+                        <label>1. Question text:</label>
+                        <input id="question_text_1" type="text" class="question_text" name="question_text_1" required>
+                        <button type="button" onclick="addAnswer(1)" class="btn btn-sm btn-secondary">Add answer</button>
+                        <input type="hidden" name="answer_1_number" value="1" id="answer_1_number">
+                        <div class="container" id="answer_1_1">
+                            <label>Answer text:</label>
+                            <input type="text" id="answer_text_1_1" name="answer_text_1_1" required>
+                            <label>Given points:</label>
+                            <input type="number" id="given_points_1_1" name="given_points_1_1" required>
+                        </div>
+                    </div>
+
                 </div>
+                <div id="quiz_warning"></div>
                 <input type="submit" value="Next" class="btn btn-lg btn-success my-3">
             </form>
         </div>
@@ -66,5 +41,129 @@
         <p>Login firstly</p>
     {% endif %}
 </div>
-</body>
-</html>
+    <script>
+        const question_list = [document.getElementById('question_text_1')];
+        function addQuestion() {
+            var question_number = Number(document.getElementById('question_number').value);
+            questions = [[]];
+            quiz_name = document.getElementById(`quiz_name`).value;
+            for (let question_index = 1; question_index <= question_number; question_index++){
+                q_text = document.getElementById(`question_text_${question_index}`).value;
+                a_num = document.getElementById(`answer_${question_index}_number`).value;
+                a_list = [[]]
+                for (let answer_index = 1; answer_index <= a_num; answer_index++){
+                    answer_text = document.getElementById(`answer_text_${question_index}_${answer_index}`).value;
+                    given_points = document.getElementById(`given_points_${question_index}_${answer_index}`).value;
+                    a_list.push([answer_text, given_points]);
+                }
+                a_list.shift();
+                questions.push([q_text, a_list]);
+            }
+            questions.shift()
+            console.log(questions);
+            if (question_number < 100) {
+                quiz_response = `<div id="quiz_info">
+                        <label for="quiz_name">Enter name of your quiz:</label>
+                        <input type="text" name="quiz_name" id="quiz_name" required value="${quiz_name}"><br>
+                    </div>
+                    <input type="hidden" name="question_number" value="${question_number+1}" id="question_number">`;
+                for (let question_index = 1; question_index <= question_number; question_index++){
+                    quiz_response += `<div id="question_${question_index}_info">
+                        <br>
+                        <label>${question_index}. Question text:</label>
+                        <input id="question_text_${question_index}" type="text" class="question_text" name="question_text_${question_index}" value="${questions[question_index-1][0]}" required>
+                        <button type="button" onclick="addAnswer(${question_index})" class="btn btn-sm btn-secondary">Add answer</button>
+                        <input type="hidden" name="answer_${question_index}_number" value="${questions[question_index-1][1].length}" id="answer_${question_index}_number">`;
+                    for (let answer_index = 1; answer_index <= questions[question_index-1][1].length; answer_index++){
+                        quiz_response += `<div class="container" id="answer_${question_index}_${answer_index}">
+                            <label>Answer text:</label>
+                            <input type="text" id="answer_text_${question_index}_${answer_index}" name="answer_text_${question_index}_${answer_index}" value="${questions[question_index-1][1][answer_index-1][0]}" required>
+                            <label>Given points:</label>
+                            <input type="number" id="given_points_${question_index}_${answer_index}" name="given_points_${question_index}_${answer_index}" value="${questions[question_index-1][1][answer_index-1][1]}" required>
+                        </div>`;
+                    }
+                    quiz_response += '</div>'
+                }
+                quiz_response += `<div id="question_${question_number+1}_info">
+                        <br>
+                        <label>${question_number+1}. Question text:</label>
+                        <input id="question_text_${question_number+1}" type="text" class="question_text" name="question_text_${question_number+1}" required>
+                        <button type="button" onclick="addAnswer(${question_number+1})" class="btn btn-sm btn-secondary">Add answer</button>
+                        <input type="hidden" name="answer_${question_number+1}_number" value="1" id="answer_${question_number+1}_number">
+                        <div class="container" id="answer_${question_number+1}_1">
+                            <label>Answer text:</label>
+                            <input type="text" id="answer_text_${question_number+1}_1" name="answer_text_${question_number+1}_1" required>
+                            <label>Given points:</label>
+                            <input type="number" id="given_points_${question_number+1}_1" name="given_points_${question_number+1}_1" required>
+                        </div>
+                    </div>`;
+                question_list.push(document.getElementById(`question_text_${question_number + 1}`))
+                //       document.getElementById("question_number").value = question_number+1;
+                document.getElementById("quiz_form").innerHTML = quiz_response;
+    }else {
+        document.getElementById("quiz_warning").innerHTML = "100 questions is max."
+    }
+}
+
+function addAnswer(q_num) {
+    question_text = document.getElementById(`question_text_${q_num}`).value;
+    answer_number = document.getElementById(`answer_${q_num}_number`).value;
+    answer_number = Number(answer_number)
+    a_list = [[]];
+    for (let answer_index = 1; answer_index <= answer_number; answer_index++){
+        answer_text = document.getElementById(`answer_text_${q_num}_${answer_index}`).value;
+        given_points = document.getElementById(`given_points_${q_num}_${answer_index}`).value;
+        a_list.push([answer_text, given_points]);
+    }
+    a_list.shift();
+
+    let answer_response = `<br><label>1. Question text:</label>
+                        <input id="question_text_${q_num}" type="text" class="question_text" name="question_text_${q_num}" value="${question_text}" required>
+                        <button type="button" onclick="addAnswer(${q_num})" class="btn btn-sm btn-secondary">Add answer</button>
+                        <input type="hidden" name="answer_${q_num}_number" value="${answer_number}" id="answer_${q_num}_number">`;
+
+    for (let answer_index = 0; answer_index < answer_number; answer_index++){
+        answer_response += `<div class="container" id="answer_${q_num}_${answer_index+1}">
+                            <label>Answer text:</label>
+                            <input type="text" id="answer_text_${q_num}_${answer_index+1}" name="answer_text_${q_num}_${answer_index+1}" value="${a_list[answer_index][0]}" required>
+                            <label>Given points:</label>
+                            <input type="number" id="given_points_${q_num}_${answer_index+1}" name="given_points_${q_num}_${answer_index+1}" value="${a_list[answer_index][1]}" required>
+                        </div>`
+    }
+    answer_response += `<div class="container" id="answer_${q_num}_${answer_number + 1}">
+            <label>Answer text:</label>
+            <input type="text" id="answer_text_${q_num}_${answer_number + 1}" name="answer_text_${q_num}_${answer_number + 1}" required>
+            <label>Given points:</label>
+            <input type="number" id="given_points_${q_num}_${answer_number + 1}" name="given_points_${q_num}_${answer_number + 1}" required>
+         </div>`
+
+    document.getElementById(`question_${q_num}_info`).innerHTML = answer_response;
+    document.getElementById(`answer_${q_num}_number`).value = answer_number + 1;
+}
+
+function Reset() {
+    document.getElementById("quiz_form").innerHTML = `
+        <div id="quiz_info">
+                        <label for="quiz_name">Enter name of your quiz:</label>
+                        <input type="text" name="quiz_name" id="quiz_name" required><br><br>
+                    </div>
+                    <input type="hidden" name="question_number" value="1" id="question_number">
+        <div id="question_1_info">
+                        <label>1. Question text:</label>
+                        <input id="question_text_1" type="text" class="question_text" name="question_text_1" required>
+                        <a onclick="addAnswer(1)" class="btn btn-sm btn-secondary">Add answer</a>
+                        <input type="hidden" name="answer_1_number" value="1" id="answer_1_number">
+                        <div class="container" id="answer_1_1">
+                            <label>Answer text:</label>
+                            <input type="text" id="answer_text_1_1" name="answer_text_1_1" required>
+                            <label>Given points:</label>
+                            <input type="number" id="given_points_1_1" name="given_points_1_1" required>
+                        </div>
+                    </div>`;
+
+    question_list.length = 1;
+    document.getElementById("question_number").value = 1;
+    document.getElementById("quiz_warning").innerHTML = "";
+        }
+    </script>
+{% endblock %}

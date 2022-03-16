@@ -88,7 +88,7 @@ def result(request, quiz_id):
     return render(request, 'quiz/result.html', context={'points': points, 'play_list': play_list})
 
 def create(request):
-    return render(request, 'quiz/create_test.html', context={})
+    return render(request, 'quiz/create.html', context={})
 
 def edit(request):
     quiz_name = request.POST['quiz_name']
@@ -98,40 +98,22 @@ def edit(request):
     answer_number = abs(int(request.POST['answer_number']))
     return render(request, 'quiz/edit.html', {'quiz_name': quiz_name, 'question_number': question_number, 'answer_number': answer_number, 'range_question': range(question_number), 'range_answer': range(answer_number)})
 
-def upload_test(request, question_number, answer_number):
-    for i in Quiz.objects.all():
-        quiz = i
-    quiz_id = quiz.id
-    for i in range(question_number):
-        question_text = request.POST[f'question_text{i}']
-        question = Question(quiz_id=quiz_id, question_text= question_text)
-        question.save()
-        for j in range(answer_number):
-            answer_text = request.POST[f'answer_text_{i}_{j}']
-            points = request.POST[f'answer_points_{i}_{j}']
-            answer = Answer(question_id=question.id, answer_text=answer_text, points=points)
-            answer.save()
-    return render(request, 'quiz/upload.html', context={'quiz_id': quiz_id})
-
 def upload(request):
-    quiz_name = request.POST['quiz_name']
+    quiz_name = request.POST[f'quiz_name']
     quiz = Quiz(user_id=request.user.id, quiz_name=quiz_name, pub_date=timezone.now())
     quiz.save()
-
     question_number = int(request.POST['question_number'])
-
     for i in range(1, question_number+1):
         question_text = request.POST[f'question_text_{i}']
         question = Question(quiz_id=quiz.id, question_text=question_text)
         question.save()
-        answer_number = request.POST[f'answer_{i}_number']
-        for j in range(1, answer_number + 1):
+        answer_number = int(request.POST[f'answer_{i}_number'])
+        for j in range(1, answer_number+1):
             answer_text = request.POST[f'answer_text_{i}_{j}']
-            given_points = request.POST[f'given_points_{i}_{j}']
-            answer = Answer(question_id=question.id, answer_text=answer_text, points=given_points)
+            points = request.POST[f'given_points_{i}_{j}']
+            answer = Answer(question_id=question.id, answer_text=answer_text, points=points)
             answer.save()
-
-    return render(request, 'quiz/upload.html', context={})
+    return render(request, 'quiz/upload.html', context={'quiz_id': quiz.id})
 
 def delete(request, quiz_id):
     quiz = Quiz.objects.get(pk=quiz_id)
