@@ -4,8 +4,7 @@ from .forms import SignUpForm
 from .models import Quiz, Question, Answer, Play
 from django.utils import timezone
 from django.contrib.auth.models import User
-from django.http import HttpResponseRedirect
-import random
+from django.views import generic
 # Create your views here.
 
 def index(request):
@@ -34,14 +33,19 @@ def index(request):
     quiz_time = quiz_dict[::-1]
     return render(request, 'quiz/index.html', context={'quiz_plays_descending': sorted_quiz_plays, 'quiz_length_descending': sorted_quiz_length, 'quiz_time_descending': quiz_dict, 'quiz_plays_ascending': quiz_plays, 'quiz_length_ascending': quiz_length, 'quiz_time_ascending': quiz_time})
 
+class IndexView(generic.ListView):
+    template_name = 'quiz/index.html'
+    model = Quiz
+    paginate_by = 100
+
 def profile(request, user_id):
     user_profile = User.objects.get(pk=user_id)
     quiz_list = Quiz.objects.filter(user_id=user_id)
     play_list = Play.objects.filter(user_id=user_id)
     return render(request, 'quiz/profile.html', context={'quiz_list': quiz_list, 'play_list': play_list, 'user_profile': user_profile})
 
-def about(request):
-    return render(request, 'quiz/about_us.html', context={})
+class AboutView(generic.TemplateView):
+    template_name = 'quiz/about_us.html'
 
 def register(request):
     if request.method == 'POST':
@@ -83,12 +87,11 @@ def result(request, quiz_id):
             if j.user.username == i.user.username:
                 if j.points > i.points:
                     pass
-
-
     return render(request, 'quiz/result.html', context={'points': points, 'play_list': play_list})
 
-def create(request):
-    return render(request, 'quiz/create.html', context={})
+
+class CreateView(generic.TemplateView):
+    template_name = 'quiz/create.html'
 
 def edit(request):
     quiz_name = request.POST['quiz_name']
