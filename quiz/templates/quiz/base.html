@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{% block page_title %}{% endblock %}</title>
+    <title>Quizer | {% block page_title %}{% endblock %}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -18,10 +18,13 @@
                     <a class="nav-link" href="{% url 'quiz:index' %}">Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'quiz:create' %}">Create</a>
+                    <a class="nav-link" href="{% url 'quiz:create'%}">Create</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'quiz:about' %}">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'quiz:leaderboard' %}">Leaderboard</a>
                 </li>
             </ul>
             <div class="d-flex">

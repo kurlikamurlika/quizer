@@ -1,44 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Interesting questionnaires</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js"></script>
-</head>
-<body>
- <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
-        <div class="container-fluid">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'quiz:index' %}">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'quiz:create' %}">Create</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'quiz:about' %}">About</a>
-                </li>
-            </ul>
-            <div class="d-flex">
-                {% if user.is_authenticated %}
-                    <li class="nav-item">{
-                        <a class="btn btn-primary mx-3" href="{% url 'quiz:profile' user.id%}">{{ user.get_username }}</a></li>
-                    <li class="nav-item">
-                        <a class="btn btn-primary" href="{% url 'logout'%}?next={{request.path}}">Logout</a>
-                    </li>
-                {% else %}
-                    <li class="nav-item">
-                        <a class="btn btn-primary mx-3" href="{% url 'login'%}?next={{request.path}}">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="btn btn-primary" href="{% url 'quiz:register'%}?next={{request.path}}">Sign up</a>
-                    </li>
-                {% endif %}
-                </div>
-        </div>
-    </nav>
-<h1>About us</h1>
-</body>
-</html>
+{% extends 'quiz/base.html' %}
+{% block page_title %}About us{% endblock %}
+{% block body_content %}
+    <div class="container mt-3">
+        <h1>About us</h1>
+        <h4>This website was created by Alexandr Doronin as an Internal Assessment in Computer Science Higher Level in the British International School, Ukraine.</h4>
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2542.4898766547644!2d30.544517715608972!3d50.41334387947032!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x40d4cf69c5255555%3A0x128ec546257f5b6c!2sThe%20British%20International%20School%20Ukraine%2C%20Pechersk!5e0!3m2!1sru!2sge!4v1647613281166!5m2!1sru!2sge" width="600" height="450" style="border:10px red solid;" allowfullscreen="" loading="lazy"></iframe>
+    </div>
+{% endblock %}

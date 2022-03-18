@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404, reverse
 from django.contrib.auth import login, authenticate
 from .forms import SignUpForm
-from .models import Quiz, Question, Answer, Play
+from .models import Quiz, Question, Answer, Play, BestResult
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.views import generic
+from django.db.models import Sum
 # Create your views here.
 
 def index(request):
@@ -33,16 +34,11 @@ def index(request):
     quiz_time = quiz_dict[::-1]
     return render(request, 'quiz/index.html', context={'quiz_plays_descending': sorted_quiz_plays, 'quiz_length_descending': sorted_quiz_length, 'quiz_time_descending': quiz_dict, 'quiz_plays_ascending': quiz_plays, 'quiz_length_ascending': quiz_length, 'quiz_time_ascending': quiz_time})
 
-class IndexView(generic.ListView):
-    template_name = 'quiz/index.html'
-    model = Quiz
-    paginate_by = 100
 
-def profile(request, user_id):
-    user_profile = User.objects.get(pk=user_id)
-    quiz_list = Quiz.objects.filter(user_id=user_id)
-    play_list = Play.objects.filter(user_id=user_id)
-    return render(request, 'quiz/profile.html', context={'quiz_list': quiz_list, 'play_list': play_list, 'user_profile': user_profile})
+class ProfileView(generic.DetailView):
+    model = User
+    template_name = 'quiz/profile.html'
+    context_object_name = 'profile'
 
 class AboutView(generic.TemplateView):
     template_name = 'quiz/about_us.html'
@@ -62,44 +58,38 @@ def register(request):
     return render(request, 'quiz/register.html', {'form': form})
 
 
-
 def play(request, quiz_id):
     quiz = Quiz.objects.get(pk=quiz_id)
-    question_list = quiz.question_set.all()
+    question_list = quiz.questions.all()
     return render(request, 'quiz/play.html', context={"quiz": quiz, "question_list": question_list})
+
 
 def result(request, quiz_id):
     quiz = get_object_or_404(Quiz, pk=quiz_id)
-
     points = 0
-    question_list = quiz.question_set.all()
+    question_list = quiz.questions.all()
 
     for question in question_list:
-        selected_answer = question.answer_set.get(pk=request.POST[f'answer{question.id}'])
+        selected_answer = question.answers.get(pk=request.POST[f'answer{question.id}'])
         points += selected_answer.points
 
     play = Play(quiz_id=quiz.id, points=points, user_id=request.user.id)
     play.save()
-    play_list = Play.objects.filter(quiz_id=quiz_id).order_by("-points")
-    play_list = list(play_list)
-    for i in play_list:
-        for j in play_list:
-            if j.user.username == i.user.username:
-                if j.points > i.points:
-                    pass
-    return render(request, 'quiz/result.html', context={'points': points, 'play_list': play_list})
+    try:
+        best_result = BestResult.objects.get(quiz_id=quiz.id, user_id=request.user.id)
+        print(best_result)
+        if best_result.points < points:
+            best_result.points = points
+            best_result.save()
+    except:
+        best_result_create = BestResult(quiz_id=quiz.id, user_id=request.user.id, points=points)
+        best_result_create.save()
+
+    return render(request, 'quiz/result.html', context={'points': points, 'quiz': quiz,})
 
 
 class CreateView(generic.TemplateView):
     template_name = 'quiz/create.html'
-
-def edit(request):
-    quiz_name = request.POST['quiz_name']
-    quiz = Quiz(user_id=request.user.id, quiz_name=quiz_name, pub_date=timezone.now())
-    quiz.save()
-    question_number = abs(int(request.POST['question_number']))
-    answer_number = abs(int(request.POST['answer_number']))
-    return render(request, 'quiz/edit.html', {'quiz_name': quiz_name, 'question_number': question_number, 'answer_number': answer_number, 'range_question': range(question_number), 'range_answer': range(answer_number)})
 
 def upload(request):
     quiz_name = request.POST[f'quiz_name']
@@ -122,3 +112,17 @@ def delete(request, quiz_id):
     quiz = Quiz.objects.get(pk=quiz_id)
     quiz.delete()
     return render(request, 'quiz/delete.html', context={})
+
+def leaderboard(request):
+    user_list = User.objects.all()
+    leaderboard = [[]]
+    for profile in user_list:
+        if len(profile.best_results.all()) > 0:
+            total_points = profile.best_results.aggregate(Sum('points'))
+            leaderboard.append([profile, total_points['points__sum']])
+    leaderboard = leaderboard[1:]
+    leaderboard.sort(key=lambda row: (row[1]), reverse=True)
+    leaderboard_dict = {
+        'leaderboard': leaderboard
+    }
+    return render(request, 'quiz/leaderboard.html', context=leaderboard_dict)

@@ -33,10 +33,10 @@ class Play(models.Model):
     def __str__(self):
         return f'{self.quiz.quiz_name}_{self.user.username}_{self.points}'
 
-class Leaderboard(models.Model):
-    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='leaderboards')
+class BestResult(models.Model):
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='best_results')
     points = models.IntegerField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='leaderboards')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='best_results')
 
     def __str__(self):
         return f'{self.quiz.quiz_name}_{self.user.username}_{self.points}'

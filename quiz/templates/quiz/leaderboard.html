@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+{% extends 'quiz/base.html' %}
+{% block page_title %}Leaderboard{% endblock %}
+{% block body_content %}
+    <div class="container my-3">
+        <h1>Leaderboard</h1>
+        {% for person in leaderboard %}
+            <div class="card">
+                <h3>{{ forloop.counter }}. <a href="{% url 'quiz:profile' person.0.id %}">{{ person.0.username }}</a>: {{ person.1 }} points.</h3>
+            </div>
+        {% empty %}
+            <h3>Leaderboard is empty</h3>
+        {% endfor %}
+    </div>
+{% endblock %}

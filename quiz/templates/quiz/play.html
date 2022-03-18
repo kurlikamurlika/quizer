@@ -10,7 +10,7 @@
             {% csrf_token %}
                 {% for question in question_list %}
                     <h2>{{ question.question_text }}</h2>
-                    {% for answer in question.answer_set.all %}
+                    {% for answer in question.answers.all %}
                         <h3>
                         <input type="radio" name="answer{{ question.id }}" id="answer{{ question.id }}-{{ forloop.counter }}" value="{{ answer.id }}">
                         <label for="answer{{ question.id }}-{{ forloop.counter }}">{{ answer.answer_text }}</label><br></h3>
